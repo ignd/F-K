@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>F&amp;K PRO — Facturation</title>
+<link rel="icon" href="logo.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Barre d'outils (non imprimée) -->
+<header class="toolbar no-print">
+  <div class="brand"><img src="logo.png" alt=""> <span>Facturation F&amp;K PRO</span></div>
+  <div class="actions">
+    <button id="btn-new" class="btn">Nouvelle</button>
+    <button id="btn-save" class="btn">Enregistrer</button>
+    <button id="btn-print" class="btn primary">Imprimer / PDF</button>
+  </div>
+</header>
+
+<main class="layout">
+  <!-- Formulaire de saisie (non imprimé) -->
+  <aside class="editor no-print">
+    <section class="card">
+      <h2>Document</h2>
+      <div class="grid2">
+        <label>Type
+          <select id="f-type">
+            <option value="proforma">Facture proforma</option>
+            <option value="facture">Facture</option>
+            <option value="devis">Devis</option>
+          </select>
+        </label>
+        <label>Numéro <input id="f-numero"></label>
+        <label>Date <input id="f-date" type="date"></label>
+        <label>Lieu <input id="f-lieu"></label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Client</h2>
+      <label>Nom du client <input id="f-client"></label>
+      <label>Détails (une ligne par information)
+        <textarea id="f-client-details" rows="3"></textarea>
+      </label>
+    </section>
+
+    <section class="card">
+      <h2>Prestations</h2>
+      <div id="lines"></div>
+      <button id="btn-add-line" class="btn small">+ Ajouter une ligne</button>
+    </section>
+
+    <section class="card">
+      <h2>Taxes et signature</h2>
+      <div class="grid2">
+        <label class="check"><input id="f-tva-on" type="checkbox"> Appliquer la TVA</label>
+        <label>Taux TVA (%) <input id="f-tva" type="number" min="0" step="0.5"></label>
+        <label>Signataire <input id="f-signataire"></label>
+        <label class="check"><input id="f-cachet-on" type="checkbox"> Afficher le cachet</label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Factures enregistrées</h2>
+      <input id="f-search" placeholder="Rechercher (numéro, client)…">
+      <ul id="history" class="history"></ul>
+    </section>
+
+    <section class="card">
+      <details>
+        <summary><h2>Paramètres de l'entreprise</h2></summary>
+        <label>Raison sociale <input id="s-nom"></label>
+        <label>Activité <input id="s-activite"></label>
+        <label>Adresse <input id="s-adresse"></label>
+        <div class="grid2">
+          <label>Téléphone <input id="s-tel"></label>
+          <label>E-mail <input id="s-email"></label>
+          <label>NINEA <input id="s-ninea"></label>
+          <label>RC <input id="s-rc"></label>
+          <label>N° de compte bancaire <input id="s-banque"></label>
+          <label>Suffixe de numérotation <input id="s-suffixe"></label>
+          <label>Prochain numéro <input id="s-prochain" type="number" min="1"></label>
+        </div>
+        <label>Cachet / signature (image, conservée uniquement sur cet appareil)
+          <input id="s-cachet" type="file" accept="image/*">
+        </label>
+        <button id="btn-cachet-del" class="btn small">Retirer le cachet</button>
+      </details>
+    </section>
+  </aside>
+
+  <!-- Aperçu de la facture (seule partie imprimée) -->
+  <section class="preview">
+    <article class="sheet" id="sheet">
+      <div class="sheet-body">
+        <div class="head">
+          <img class="logo" src="logo.png" alt="F&amp;K PRO">
+          <div class="title">
+            <h1 id="p-type">FACTURE PROFORMA</h1>
+            <p class="num">N° <span id="p-numero"></span></p>
+            <p class="meta">Date : <span id="p-date"></span></p>
+            <p class="meta">Devise : Francs CFA (XOF)</p>
+          </div>
+        </div>
+
+        <div class="parties">
+          <div class="party">
+            <p class="label">Émetteur</p>
+            <p class="name" id="p-nom"></p>
+            <p id="p-activite"></p>
+            <p id="p-adresse"></p>
+            <p id="p-contact"></p>
+          </div>
+          <div class="party client">
+            <p class="label">Facturé à</p>
+            <p class="name" id="p-client"></p>
+            <div id="p-client-details"></div>
+          </div>
+        </div>
+
+        <table class="items">
+          <thead>
+            <tr>
+              <th class="desc">Désignation</th>
+              <th>Nombre</th>
+              <th>Qté</th>
+              <th class="r">Prix unitaire</th>
+              <th class="r">Montant</th>
+            </tr>
+          </thead>
+          <tbody id="p-lines"></tbody>
+        </table>
+
+        <table class="totals">
+          <tr><td>Total HT</td><td id="p-ht"></td></tr>
+          <tr id="p-tva-row"><td id="p-tva-label">TVA 18 %</td><td id="p-tva"></td></tr>
+          <tr class="grand"><td id="p-ttc-label">Total TTC</td><td id="p-ttc"></td></tr>
+        </table>
+
+        <div class="words">
+          <p id="p-arrete"></p>
+          <p class="amount" id="p-lettres"></p>
+        </div>
+
+        <div class="sign">
+          <p id="p-fait"></p>
+          <p class="who" id="p-signataire"></p>
+          <img id="p-cachet" alt="">
+        </div>
+      </div>
+
+      <footer class="sheet-foot">
+        <p id="p-foot1"></p>
+        <p id="p-foot2"></p>
+      </footer>
+    </article>
+  </section>
+</main>
+
+<div id="toast" class="toast no-print" role="status"></div>
+<script src="app.js"></script>
+</body>
+</html>
