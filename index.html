@@ -53,6 +53,13 @@
     </section>
 
     <section class="card">
+      <h2>NB</h2>
+      <label>Remarques imprimées sur la facture (laisser vide pour masquer)
+        <textarea id="f-nb" rows="3" placeholder="Ex. : Acompte de 50 % à la commande, solde à la livraison."></textarea>
+      </label>
+    </section>
+
+    <section class="card">
       <h2>Taxes et signature</h2>
       <div class="grid2">
         <label class="check"><input id="f-tva-on" type="checkbox"> Appliquer la TVA</label>
@@ -83,6 +90,9 @@
           <label>Suffixe de numérotation <input id="s-suffixe"></label>
           <label>Prochain numéro <input id="s-prochain" type="number" min="1"></label>
         </div>
+        <label>NB par défaut (repris sur chaque nouvelle facture)
+          <textarea id="s-nb" rows="2"></textarea>
+        </label>
         <label>Cachet / signature (image, conservée uniquement sur cet appareil)
           <input id="s-cachet" type="file" accept="image/*">
         </label>
@@ -142,6 +152,11 @@
         <div class="words">
           <p id="p-arrete"></p>
           <p class="amount" id="p-lettres"></p>
+        </div>
+
+        <div class="nb" id="p-nb-bloc">
+          <p><strong>NB :</strong></p>
+          <div id="p-nb"></div>
         </div>
 
         <div class="sign">

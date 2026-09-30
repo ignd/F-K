@@ -117,6 +117,8 @@ label.check input { width: auto; margin: 0; }
 .words { margin-top: 7mm; padding: 4mm 5mm; background: var(--fond-orange); border-left: 3px solid var(--orange); border-radius: 2mm; }
 .words .amount { font-weight: 700; margin-top: 1mm; }
 
+.nb { margin-top: 5mm; padding: 3mm 5mm; border: 1px dashed var(--bleu); border-radius: 2mm; font-size: 9.5pt; }
+.nb strong { color: var(--bleu); }
 .sign { margin-top: 8mm; margin-left: auto; width: 75mm; text-align: center; }
 .sign .who { font-weight: 700; margin-top: 2mm; }
 .sign img { display: none; max-width: 65mm; max-height: 32mm; margin: 3mm auto 0; }

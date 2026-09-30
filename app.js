@@ -29,6 +29,7 @@ const PARAMS_DEFAUT = {
   banque: '0115126000150',
   suffixe: 'FNK',
   prochain: 11,
+  nbDefaut: '',
 };
 
 const LIBELLES = {
@@ -64,6 +65,7 @@ function nouvelleFacture() {
     tva: 18,
     signataire: 'La Directrice',
     cachetOn: true,
+    nb: params.nbDefaut || '',
   };
 }
 
@@ -143,16 +145,16 @@ const $ = (id) => document.getElementById(id);
 
 const CHAMPS = {
   'f-type': 'type', 'f-numero': 'numero', 'f-date': 'date', 'f-lieu': 'lieu',
-  'f-client': 'client', 'f-client-details': 'clientDetails', 'f-tva': 'tva', 'f-signataire': 'signataire',
+  'f-client': 'client', 'f-client-details': 'clientDetails', 'f-tva': 'tva', 'f-signataire': 'signataire', 'f-nb': 'nb',
 };
 const CASES = { 'f-tva-on': 'tvaOn', 'f-cachet-on': 'cachetOn' };
 const CHAMPS_PARAMS = {
   's-nom': 'nom', 's-activite': 'activite', 's-adresse': 'adresse', 's-tel': 'tel', 's-email': 'email',
-  's-ninea': 'ninea', 's-rc': 'rc', 's-banque': 'banque', 's-suffixe': 'suffixe', 's-prochain': 'prochain',
+  's-ninea': 'ninea', 's-rc': 'rc', 's-banque': 'banque', 's-suffixe': 'suffixe', 's-prochain': 'prochain', 's-nb': 'nbDefaut',
 };
 
 function remplirFormulaire() {
-  for (const [id, k] of Object.entries(CHAMPS)) $(id).value = facture[k];
+  for (const [id, k] of Object.entries(CHAMPS)) $(id).value = facture[k] ?? '';
   for (const [id, k] of Object.entries(CASES)) $(id).checked = !!facture[k];
   dessinerLignes();
 }
@@ -236,6 +238,10 @@ function majApercu() {
   $('p-arrete').textContent = lib.arrete;
   $('p-lettres').textContent =
     `${lettres.charAt(0).toUpperCase() + lettres.slice(1)} (${fmt(t.ttc)}) francs CFA${facture.tvaOn ? ' TTC' : ''}.`;
+
+  const nbTexte = (facture.nb || '').trim();
+  $('p-nb-bloc').style.display = nbTexte ? '' : 'none';
+  $('p-nb').innerHTML = nbTexte.split('\n').filter((s) => s.trim()).map((s) => `<p>${echapper(s)}</p>`).join('');
 
   $('p-fait').textContent = `Fait à ${facture.lieu || 'Dakar'}, le ${dateFr(facture.date)}`;
   $('p-signataire').textContent = facture.signataire;
