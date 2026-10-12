@@ -22,7 +22,7 @@ const PARAMS_DEFAUT = {
   nom: 'F&K PRO',
   activite: "Agence de communication et d'événementiel",
   adresse: '2 Voies Liberté 6, Lot 2298 – Dakar',
-  tel: '33 867 16 61',
+  tel: '33 867 16 61 / 76 761 00 00',
   email: 'fandkpro2018@gmail.com',
   ninea: '0052030130023',
   rc: 'SN.DKR.2018.E.9465',
@@ -41,6 +41,8 @@ const LIBELLES = {
 };
 
 let params = { ...PARAMS_DEFAUT, ...store.get(CLE_PARAMS, {}) };
+// Ajoute le second numéro sur les appareils qui ont encore l'ancien téléphone seul
+if (params.tel === '33 867 16 61') { params.tel = PARAMS_DEFAUT.tel; store.set(CLE_PARAMS, params); }
 let facture = null;
 
 function aujourdhui() {
