@@ -181,7 +181,7 @@ function dessinerLignes() {
         <label>Prix unitaire <input data-k="pu" type="number" min="0" step="any" value="${l.pu}"></label>
       </div>
       <div class="line-foot">
-        <span>Montant : <strong data-total>${fmt(nb(l.nombre) * nb(l.qte) * nb(l.pu))}</strong></span>
+        <span>Prix total : <strong data-total>${fmt(nb(l.nombre) * nb(l.qte) * nb(l.pu))}</strong></span>
         <button class="btn small danger" data-suppr>Supprimer</button>
       </div>`;
     div.addEventListener('input', (e) => {
