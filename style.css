@@ -66,6 +66,12 @@ label.check input { width: auto; margin: 0; }
 .history li .info { flex: 1; min-width: 0; }
 .history li .info b { color: var(--bleu); }
 .history li .info span { display: block; color: var(--gris); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.statut { font-size: 12px; font-weight: 400; color: var(--gris); padding: 2px 8px; border-radius: 99px; background: var(--fond-ligne); border: 1px solid var(--bord); }
+.statut.ok { color: #1b6e3a; background: #eaf7ef; border-color: #bfe5cc; }
+.statut.err { color: #b3261e; background: #fdecea; border-color: #f5c2bd; }
+.card h3 { font-size: 14px; color: var(--bleu); margin: 16px 0 4px; }
+.aide { font-size: 12.5px; color: var(--gris); margin: 0 0 8px; }
+#btn-sync { margin-top: 10px; }
 .history .empty { color: var(--gris); }
 
 .toast {

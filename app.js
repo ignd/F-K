@@ -30,6 +30,8 @@ const PARAMS_DEFAUT = {
   suffixe: 'FNK',
   prochain: 11,
   nbDefaut: '',
+  cloudUrl: '',
+  cloudCode: '',
 };
 
 const LIBELLES = {
@@ -151,6 +153,7 @@ const CASES = { 'f-tva-on': 'tvaOn', 'f-cachet-on': 'cachetOn' };
 const CHAMPS_PARAMS = {
   's-nom': 'nom', 's-activite': 'activite', 's-adresse': 'adresse', 's-tel': 'tel', 's-email': 'email',
   's-ninea': 'ninea', 's-rc': 'rc', 's-banque': 'banque', 's-suffixe': 'suffixe', 's-prochain': 'prochain', 's-nb': 'nbDefaut',
+  's-cloud-url': 'cloudUrl', 's-cloud-code': 'cloudCode',
 };
 
 function remplirFormulaire() {
@@ -278,10 +281,89 @@ function dessinerHistorique() {
     </li>`).join('');
 }
 
-function enregistrer() {
+/* ================= Enregistrement en ligne (Google Sheets) ================= */
+const enLigne = () => !!(params.cloudUrl && params.cloudCode);
+
+// POST en text/plain : évite la requête préalable CORS refusée par Apps Script
+async function appelCloud(action, extra = {}) {
+  const rep = await fetch(params.cloudUrl.trim(), {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action, code: params.cloudCode, ...extra }),
+  });
+  let json;
+  try { json = await rep.json(); }
+  catch { throw new Error('réponse invalide (vérifiez l\'adresse du script)'); }
+  if (!json.ok) throw new Error(json.erreur || 'erreur inconnue');
+  return json;
+}
+
+const avecTotal = (f) => ({ ...f, totalTTC: calculer(f).ttc });
+
+function majStatut(texte, erreur) {
+  const s = $('cloud-statut');
+  s.textContent = texte || (enLigne() ? 'Google Sheets' : 'Sur cet ordinateur uniquement');
+  s.classList.toggle('err', !!erreur);
+  s.classList.toggle('ok', !erreur && enLigne());
+}
+
+// Le compteur suit le plus grand numéro déjà utilisé (factures saisies sur d'autres appareils)
+function ajusterCompteur() {
+  const motif = new RegExp(`^(\\d+)/${params.suffixe}/${new Date().getFullYear()}$`);
+  const max = factures().reduce((m, f) => {
+    const r = motif.exec(f.numero || '');
+    return r ? Math.max(m, Number(r[1])) : m;
+  }, 0);
+  if (max + 1 > nb(params.prochain)) {
+    const ancien = numeroSuivant();
+    params.prochain = max + 1;
+    store.set(CLE_PARAMS, params);
+    remplirParams();
+    if (!facture.id && facture.numero === ancien) {
+      facture.numero = numeroSuivant();
+      $('f-numero').value = facture.numero;
+      majApercu();
+    }
+  }
+}
+
+// Fusionne le tableur et l'historique local (la version la plus récente l'emporte)
+async function synchroniser(silencieux) {
+  if (!enLigne()) { majStatut(); return true; }
+  majStatut('Synchronisation…');
+  try {
+    const { factures: distantes } = await appelCloud('list');
+    const locales = factures();
+    const parId = new Map(locales.map((f) => [f.id, f]));
+    for (const d of distantes) {
+      const l = parId.get(d.id);
+      if (!l || (d.majLe || '') >= (l.majLe || '')) parId.set(d.id, d);
+    }
+    // Envoie les factures créées hors connexion
+    const idsDistants = new Set(distantes.map((d) => d.id));
+    for (const l of locales) {
+      if (!idsDistants.has(l.id)) await appelCloud('save', { facture: avecTotal(l) });
+    }
+    store.set(CLE_FACTURES, [...parId.values()]);
+    ajusterCompteur();
+    dessinerHistorique();
+    majStatut(`Google Sheets · ${parId.size} facture(s)`);
+    if (!silencieux) toast('Factures synchronisées avec Google Sheets.');
+    return true;
+  } catch (e) {
+    majStatut('Hors ligne', true);
+    if (!silencieux) toast('Connexion à Google Sheets impossible : ' + e.message);
+    return false;
+  }
+}
+
+async function enregistrer() {
+  // Récupère d'abord les numéros saisis ailleurs pour éviter les doublons
+  if (!facture.id && enLigne()) await synchroniser(true);
   const liste = factures();
   const doublon = liste.find((f) => f.numero === facture.numero && f.id !== facture.id);
   if (doublon) { toast(`Le numéro ${facture.numero} est déjà utilisé.`); return; }
+  facture.majLe = new Date().toISOString();
   if (!facture.id) {
     facture.id = Date.now().toString(36);
     // Le compteur avance seulement si le numéro automatique a été utilisé
@@ -295,9 +377,20 @@ function enregistrer() {
     const i = liste.findIndex((f) => f.id === facture.id);
     if (i >= 0) liste[i] = facture; else liste.push(facture);
   }
-  if (store.set(CLE_FACTURES, liste)) toast(`Facture ${facture.numero} enregistrée.`);
-  else toast("Échec de l'enregistrement (stockage indisponible).");
+  const local = store.set(CLE_FACTURES, liste);
   dessinerHistorique();
+  if (!enLigne()) {
+    toast(local ? `Facture ${facture.numero} enregistrée sur cet ordinateur.` : "Échec de l'enregistrement (stockage indisponible).");
+    return;
+  }
+  try {
+    await appelCloud('save', { facture: avecTotal(facture) });
+    toast(`Facture ${facture.numero} enregistrée dans Google Sheets.`);
+    synchroniser(true);
+  } catch (e) {
+    majStatut('Hors ligne', true);
+    toast(`Enregistrée sur cet ordinateur seulement (${e.message}). Elle sera envoyée à la prochaine synchronisation.`);
+  }
 }
 
 function charger(f) {
@@ -351,6 +444,7 @@ function init() {
       params[k] = k === 'prochain' ? Math.max(1, nb(e.target.value)) : e.target.value;
       store.set(CLE_PARAMS, params);
       majApercu();
+      if (k === 'cloudUrl' || k === 'cloudCode') majStatut();
     });
   }
 
@@ -363,6 +457,11 @@ function init() {
   $('btn-save').addEventListener('click', enregistrer);
   $('btn-print').addEventListener('click', () => window.print());
   $('f-search').addEventListener('input', dessinerHistorique);
+  $('btn-sync').addEventListener('click', () => {
+    if (!enLigne()) { toast("Renseignez l'adresse du script et le code d'accès dans les paramètres."); return; }
+    synchroniser(false);
+  });
+  $('btn-cloud-test').addEventListener('click', () => synchroniser(false));
 
   $('history').addEventListener('click', (e) => {
     const b = e.target.closest('button');
@@ -379,6 +478,11 @@ function init() {
       if (f && confirm(`Supprimer la facture ${f.numero} ?`)) {
         store.set(CLE_FACTURES, liste.filter((x) => x.id !== f.id));
         dessinerHistorique();
+        if (enLigne()) {
+          appelCloud('delete', { id: f.id })
+            .then(() => { toast(`Facture ${f.numero} supprimée de Google Sheets.`); synchroniser(true); })
+            .catch((err) => toast('Suppression dans Google Sheets impossible : ' + err.message));
+        }
       }
     }
   });
@@ -403,6 +507,9 @@ function init() {
   document.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); enregistrer(); }
   });
+
+  majStatut();
+  synchroniser(true);
 }
 
 init();

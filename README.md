@@ -10,3 +10,7 @@ Application web (HTML/CSS/JS, sans serveur) pour créer, enregistrer et imprimer
 - Cachet / signature : à charger dans « Paramètres de l'entreprise » (conservé uniquement sur l'appareil, jamais publié)
 
 Les données restent dans le navigateur utilisé : chaque ordinateur a son propre historique.
+
+## Enregistrement en ligne
+Les factures peuvent être enregistrées dans un tableur Google Sheets privé pour être retrouvées sur tous les appareils :
+voir [INSTALLATION-GOOGLE-SHEETS.md](INSTALLATION-GOOGLE-SHEETS.md).

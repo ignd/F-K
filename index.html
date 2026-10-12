@@ -11,7 +11,7 @@
 
 <!-- Barre d'outils (non imprimée) -->
 <header class="toolbar no-print">
-  <div class="brand"><img src="logo.png" alt=""> <span>Facturation F&amp;K PRO</span></div>
+  <div class="brand"><img src="logo.png" alt=""> <span>Facturation F&amp;K PRO</span> <span id="cloud-statut" class="statut"></span></div>
   <div class="actions">
     <button id="btn-new" class="btn">Nouvelle</button>
     <button id="btn-save" class="btn">Enregistrer</button>
@@ -73,6 +73,7 @@
       <h2>Factures enregistrées</h2>
       <input id="f-search" placeholder="Rechercher (numéro, client)…">
       <ul id="history" class="history"></ul>
+      <button id="btn-sync" class="btn small">↻ Actualiser depuis Google Sheets</button>
     </section>
 
     <section class="card">
@@ -97,6 +98,13 @@
           <input id="s-cachet" type="file" accept="image/*">
         </label>
         <button id="btn-cachet-del" class="btn small">Retirer le cachet</button>
+
+        <h3>Enregistrement en ligne (Google Sheets)</h3>
+        <p class="aide">Les factures enregistrées sont copiées dans votre tableur Google et retrouvées sur tous les appareils.
+          Guide : <a href="https://github.com/ignd/F-K/blob/main/INSTALLATION-GOOGLE-SHEETS.md" target="_blank" rel="noopener">installation Google Sheets</a>.</p>
+        <label>Adresse du script (se termine par /exec) <input id="s-cloud-url" placeholder="https://script.google.com/macros/s/…/exec"></label>
+        <label>Code d'accès <input id="s-cloud-code" type="password" autocomplete="off"></label>
+        <button id="btn-cloud-test" class="btn small">Tester et synchroniser</button>
       </details>
     </section>
   </aside>
