@@ -71,7 +71,7 @@ label.check input { width: auto; margin: 0; }
 .statut.err { color: #b3261e; background: #fdecea; border-color: #f5c2bd; }
 .card h3 { font-size: 14px; color: var(--bleu); margin: 16px 0 4px; }
 .aide { font-size: 12.5px; color: var(--gris); margin: 0 0 8px; }
-#btn-sync { margin-top: 10px; }
+.history-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .history .empty { color: var(--gris); }
 
 .toast {

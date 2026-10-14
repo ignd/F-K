@@ -73,7 +73,12 @@
       <h2>Factures enregistrées</h2>
       <input id="f-search" placeholder="Rechercher (numéro, client)…">
       <ul id="history" class="history"></ul>
-      <button id="btn-sync" class="btn small">↻ Actualiser depuis Google Sheets</button>
+      <div class="history-actions">
+        <button id="btn-sync" class="btn small">↻ Actualiser depuis Google Sheets</button>
+        <button id="btn-export" class="btn small">Exporter</button>
+        <button id="btn-import" class="btn small">Importer</button>
+        <input id="f-import" type="file" accept=".json,application/json" hidden>
+      </div>
     </section>
 
     <section class="card">

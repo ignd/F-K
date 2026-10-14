@@ -401,6 +401,44 @@ function charger(f) {
   majApercu();
 }
 
+/* ================= Sauvegarde par fichier ================= */
+function exporter() {
+  const donnees = { format: 'fk-factures', version: 1, exporteLe: new Date().toISOString(), factures: factures() };
+  const lien = document.createElement('a');
+  lien.href = URL.createObjectURL(new Blob([JSON.stringify(donnees, null, 2)], { type: 'application/json' }));
+  lien.download = `factures-fk-${aujourdhui()}.json`;
+  lien.click();
+  URL.revokeObjectURL(lien.href);
+}
+
+function importer(texte) {
+  let entrantes;
+  try {
+    const json = JSON.parse(texte);
+    entrantes = Array.isArray(json) ? json : json.factures;
+    if (!Array.isArray(entrantes)) throw new Error();
+  } catch {
+    toast("Fichier non reconnu : choisissez un fichier exporté depuis l'application.");
+    return;
+  }
+  const liste = factures();
+  let ajoutees = 0, ignorees = 0;
+  for (const f of entrantes) {
+    if (!f || !f.id || !f.numero || !Array.isArray(f.lignes)) { ignorees++; continue; }
+    const i = liste.findIndex((x) => x.id === f.id);
+    // Un même numéro sous un autre identifiant serait un doublon
+    if (i < 0 && liste.some((x) => x.numero === f.numero)) { ignorees++; continue; }
+    if (i < 0) { liste.push(f); ajoutees++; }
+    else if ((f.majLe || '') > (liste[i].majLe || '')) { liste[i] = f; ajoutees++; }
+  }
+  store.set(CLE_FACTURES, liste);
+  ajusterCompteur();
+  dessinerHistorique();
+  toast(`${ajoutees} facture(s) importée(s)${ignorees ? `, ${ignorees} ignorée(s) (déjà présentes)` : ''}.`);
+  // La synchronisation envoie les factures importées vers Google Sheets
+  if (enLigne()) synchroniser(true);
+}
+
 /* ================= Divers ================= */
 let minuteur;
 function toast(msg) {
@@ -464,6 +502,14 @@ function init() {
     synchroniser(false);
   });
   $('btn-cloud-test').addEventListener('click', () => synchroniser(false));
+  $('btn-export').addEventListener('click', exporter);
+  $('btn-import').addEventListener('click', () => $('f-import').click());
+  $('f-import').addEventListener('change', (e) => {
+    const fichier = e.target.files[0];
+    if (!fichier) return;
+    fichier.text().then(importer);
+    e.target.value = '';
+  });
 
   $('history').addEventListener('click', (e) => {
     const b = e.target.closest('button');
