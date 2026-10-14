@@ -138,6 +138,13 @@ function echapper(s) {
   return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
+// NB : le titre de ligne (avant « : ») et les pourcentages passent en orange gras
+function mettreEnValeurNb(ligne) {
+  let html = echapper(ligne).replace(/\d+(?:[,.]\d+)?\s?%/g, (p) => `<strong>${p}</strong>`);
+  html = html.replace(/^([^:<]{2,40}?)(\s*:)/, '<strong>$1$2</strong>');
+  return html;
+}
+
 function calculer(f) {
   const ht = f.lignes.reduce((s, l) => s + nb(l.nombre) * nb(l.qte) * nb(l.pu), 0);
   const tva = f.tvaOn ? Math.round(ht * nb(f.tva) / 100) : 0;
@@ -246,7 +253,7 @@ function majApercu() {
 
   const nbTexte = (facture.nb || '').trim();
   $('p-nb-bloc').style.display = nbTexte ? '' : 'none';
-  $('p-nb').innerHTML = nbTexte.split('\n').filter((s) => s.trim()).map((s) => `<p>${echapper(s)}</p>`).join('');
+  $('p-nb').innerHTML = nbTexte.split('\n').filter((s) => s.trim()).map((s) => `<p>${mettreEnValeurNb(s)}</p>`).join('');
 
   $('p-fait').textContent = `Fait à ${facture.lieu || 'Dakar'}, le ${dateFr(facture.date)}`;
   $('p-signataire').textContent = facture.signataire;

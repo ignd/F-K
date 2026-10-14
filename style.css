@@ -125,7 +125,7 @@ label.check input { width: auto; margin: 0; }
 
 .bas { display: flex; gap: 6mm; align-items: flex-start; margin-top: 5mm; }
 .nb { flex: 1; padding: 3mm 5mm; border: 1px dashed var(--bleu); border-radius: 2mm; font-size: 9.5pt; }
-.nb strong { color: var(--bleu); }
+.nb strong { color: var(--orange); font-weight: 700; }
 .sign { flex: none; margin-left: auto; width: 62mm; text-align: center; }
 .sign .who { font-weight: 700; margin-top: 2mm; }
 .sign img { display: none; max-width: 60mm; max-height: 30mm; margin: 3mm auto 0; }
