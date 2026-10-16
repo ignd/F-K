@@ -65,6 +65,7 @@ function nouvelleFacture() {
     client: '',
     clientDetails: '',
     lignes: [{ designation: '', detail: '', nombre: 1, qte: 1, pu: 0 }],
+    devise: 'XOF',
     tvaOn: true,
     tva: 18,
     signataire: 'La Directrice',
@@ -126,6 +127,34 @@ const fmt = (n) => Math.round(n).toLocaleString('fr-FR').replace(/[  ]/g, ' '
 const nb = (v) => { const x = parseFloat(String(v).replace(',', '.')); return isFinite(x) ? x : 0; };
 const pad2 = (n) => (Number.isInteger(n) && n < 10 && n >= 0 ? '0' + n : String(n).replace('.', ','));
 
+/* ================= Devises ================= */
+const DEVISES = {
+  XOF: { libelle: 'Francs CFA (XOF)', court: 'F CFA', unite: ['franc CFA', 'francs CFA'], dec: 0 },
+  USD: { libelle: 'Dollars US (USD)', court: 'USD', unite: ['dollar US', 'dollars US'], centime: ['cent', 'cents'], dec: 2 },
+  EUR: { libelle: 'Euros (EUR)', court: '€', unite: ['euro', 'euros'], centime: ['centime', 'centimes'], dec: 2 },
+};
+const devise = (f) => DEVISES[f && f.devise] || DEVISES.XOF;
+const arrondi = (n, f) => (devise(f).dec ? Math.round(n * 100) / 100 : Math.round(n));
+
+// Montant formaté selon la devise (centimes affichés seulement s'il y en a)
+function fmtD(n, f) {
+  if (!devise(f).dec) return fmt(n);
+  const r = Math.round(n * 100) / 100;
+  return r.toLocaleString('fr-FR', { minimumFractionDigits: Number.isInteger(r) ? 0 : 2, maximumFractionDigits: 2 })
+    .replace(/[  ]/g, ' ');
+}
+
+// « Mille neuf cent treize (1 913) dollars US » ; « un million de … » pour les millions ronds
+function phraseMontant(n, f) {
+  const d = devise(f);
+  const total = Math.round(n * 100);
+  const entier = Math.floor(total / 100), cents = d.dec ? total % 100 : 0;
+  const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+  const unite = (entier % 1e6 === 0 && entier > 0 ? 'de ' : '') + d.unite[entier >= 2 ? 1 : 0];
+  if (!cents) return `${cap(enLettres(entier))} (${fmtD(n, f)}) ${unite}`;
+  return `${cap(enLettres(entier))} ${unite} et ${enLettres(cents)} ${d.centime[cents >= 2 ? 1 : 0]} (${fmtD(n, f)} ${d.court})`;
+}
+
 function dateFr(iso) {
   if (!iso) return '';
   const [a, m, j] = iso.split('-').map(Number);
@@ -147,7 +176,7 @@ function mettreEnValeurNb(ligne) {
 
 function calculer(f) {
   const ht = f.lignes.reduce((s, l) => s + nb(l.nombre) * nb(l.qte) * nb(l.pu), 0);
-  const tva = f.tvaOn ? Math.round(ht * nb(f.tva) / 100) : 0;
+  const tva = f.tvaOn ? arrondi(ht * nb(f.tva) / 100, f) : 0;
   return { ht, tva, ttc: ht + tva };
 }
 
@@ -155,7 +184,7 @@ function calculer(f) {
 const $ = (id) => document.getElementById(id);
 
 const CHAMPS = {
-  'f-type': 'type', 'f-numero': 'numero', 'f-date': 'date', 'f-lieu': 'lieu',
+  'f-type': 'type', 'f-devise': 'devise', 'f-numero': 'numero', 'f-date': 'date', 'f-lieu': 'lieu',
   'f-client': 'client', 'f-client-details': 'clientDetails', 'f-tva': 'tva', 'f-signataire': 'signataire', 'f-nb': 'nb',
 };
 const CASES = { 'f-tva-on': 'tvaOn', 'f-cachet-on': 'cachetOn' };
@@ -166,6 +195,7 @@ const CHAMPS_PARAMS = {
 };
 
 function remplirFormulaire() {
+  if (!DEVISES[facture.devise]) facture.devise = 'XOF';
   for (const [id, k] of Object.entries(CHAMPS)) $(id).value = facture[k] ?? '';
   for (const [id, k] of Object.entries(CASES)) $(id).checked = !!facture[k];
   dessinerLignes();
@@ -190,14 +220,14 @@ function dessinerLignes() {
         <label>Prix unitaire <input data-k="pu" type="number" min="0" step="any" value="${l.pu}"></label>
       </div>
       <div class="line-foot">
-        <span>Prix total : <strong data-total>${fmt(nb(l.nombre) * nb(l.qte) * nb(l.pu))}</strong></span>
+        <span>Prix total : <strong data-total>${fmtD(nb(l.nombre) * nb(l.qte) * nb(l.pu), facture)}</strong></span>
         <button class="btn small danger" data-suppr>Supprimer</button>
       </div>`;
     div.addEventListener('input', (e) => {
       const k = e.target.dataset.k;
       if (!k) return;
       l[k] = e.target.value;
-      div.querySelector('[data-total]').textContent = fmt(nb(l.nombre) * nb(l.qte) * nb(l.pu));
+      div.querySelector('[data-total]').textContent = fmtD(nb(l.nombre) * nb(l.qte) * nb(l.pu), facture);
       majApercu();
     });
     div.querySelector('[data-suppr]').addEventListener('click', () => {
@@ -235,21 +265,21 @@ function majApercu() {
         <td class="desc">${echapper(l.designation)}${l.detail ? `<small>${echapper(l.detail)}</small>` : ''}</td>
         <td>${pad2(nb(l.nombre))}</td>
         <td>${pad2(nb(l.qte))}</td>
-        <td class="r">${fmt(nb(l.pu))}</td>
-        <td class="r total">${fmt(nb(l.nombre) * nb(l.qte) * nb(l.pu))}</td>
+        <td class="r">${fmtD(nb(l.pu), facture)}</td>
+        <td class="r total">${fmtD(nb(l.nombre) * nb(l.qte) * nb(l.pu), facture)}</td>
       </tr>`).join('');
 
-  $('p-ht').textContent = fmt(t.ht) + ' F CFA';
+  const dv = devise(facture);
+  $('p-devise').textContent = dv.libelle;
+  $('p-ht').textContent = `${fmtD(t.ht, facture)} ${dv.court}`;
   $('p-tva-row').style.display = facture.tvaOn ? '' : 'none';
   $('p-tva-label').textContent = `TVA ${String(nb(facture.tva)).replace('.', ',')} %`;
-  $('p-tva').textContent = fmt(t.tva) + ' F CFA';
+  $('p-tva').textContent = `${fmtD(t.tva, facture)} ${dv.court}`;
   $('p-ttc-label').textContent = facture.tvaOn ? 'Total TTC' : 'Total net à payer';
-  $('p-ttc').textContent = fmt(t.ttc) + ' F CFA';
+  $('p-ttc').textContent = `${fmtD(t.ttc, facture)} ${dv.court}`;
 
-  const lettres = enLettres(t.ttc);
   $('p-arrete').textContent = lib.arrete;
-  $('p-lettres').textContent =
-    `${lettres.charAt(0).toUpperCase() + lettres.slice(1)} (${fmt(t.ttc)}) francs CFA${facture.tvaOn ? ' TTC' : ''}.`;
+  $('p-lettres').textContent = `${phraseMontant(t.ttc, facture)}${facture.tvaOn ? ' TTC' : ''}.`;
 
   const nbTexte = (facture.nb || '').trim();
   $('p-nb-bloc').style.display = nbTexte ? '' : 'none';
@@ -282,7 +312,7 @@ function dessinerHistorique() {
   if (!liste.length) { ul.innerHTML = '<li class="empty">Aucune facture enregistrée.</li>'; return; }
   ul.innerHTML = liste.map((f) => `
     <li>
-      <div class="info"><b>${echapper(f.numero)}</b> · ${fmt(calculer(f).ttc)} F
+      <div class="info"><b>${echapper(f.numero)}</b> · ${fmtD(calculer(f).ttc, f)} ${devise(f).court}
         <span>${echapper(LIBELLES[f.type]?.titre || '')} — ${echapper(f.client || 'Sans client')} — ${dateFr(f.date)}</span></div>
       <button class="btn small" data-ouvrir="${f.id}">Ouvrir</button>
       <button class="btn small" data-dupliquer="${f.id}">Dupliquer</button>

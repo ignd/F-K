@@ -106,7 +106,7 @@ label.check input { width: auto; margin: 0; }
 .party .name { font-weight: 700; color: var(--bleu); font-size: 12pt; margin-bottom: 1mm; }
 
 .items { width: 100%; border-collapse: collapse; }
-.items th { background: var(--bleu); color: #fff; font-weight: 700; padding: 2.5mm 3mm; text-align: center; font-size: 10pt; }
+.items th { background: var(--bleu); color: #fff; font-weight: 700; padding: 2.5mm 3mm; text-align: center; font-size: 10pt; white-space: nowrap; }
 .items th.desc { text-align: left; }
 .items th.r, .items td.r { text-align: right; }
 .items td { padding: 2mm 3mm; border-bottom: 1px solid var(--bord); text-align: center; vertical-align: top; }
