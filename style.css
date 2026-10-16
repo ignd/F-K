@@ -111,7 +111,7 @@ label.check input { width: auto; margin: 0; }
 .items th.r, .items td.r { text-align: right; }
 .items td { padding: 2mm 3mm; border-bottom: 1px solid var(--bord); text-align: center; vertical-align: top; }
 .items td.desc { text-align: left; }
-.items td.desc small { display: block; color: var(--gris); font-size: 9pt; }
+.items td.desc small { display: block; color: var(--gris); font-size: 9pt; white-space: pre-line; }
 .items tbody tr:nth-child(even) td { background: var(--fond-ligne); }
 .items td.total { font-weight: 700; }
 

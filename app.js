@@ -213,7 +213,7 @@ function dessinerLignes() {
     div.className = 'line';
     div.innerHTML = `
       <label>Désignation <input data-k="designation" value="${echapper(l.designation)}" placeholder="Ex. : Location de salle"></label>
-      <label>Précision (facultatif) <input data-k="detail" value="${echapper(l.detail)}"></label>
+      <label>Précision (facultatif, une info par ligne) <textarea data-k="detail" rows="2">${echapper(l.detail)}</textarea></label>
       <div class="row3">
         <label>Nombre <input data-k="nombre" type="number" min="0" step="any" value="${l.nombre}"></label>
         <label>Qté <input data-k="qte" type="number" min="0" step="any" value="${l.qte}"></label>
