@@ -114,6 +114,8 @@ label.check input { width: auto; margin: 0; }
 .items td.desc small { display: block; color: var(--gris); font-size: 9pt; white-space: pre-line; }
 .items tbody tr:nth-child(even) td { background: var(--fond-ligne); }
 .items td.total { font-weight: 700; }
+.items tr.section td { font-weight: 700; font-size: 11pt; color: var(--bleu); border-bottom: 0; padding-top: 3mm; padding-bottom: 1mm; }
+.items tr.detail td.desc { padding-left: 8mm; }
 
 .totals { margin: 5mm 0 0 auto; border-collapse: collapse; min-width: 80mm; }
 .totals td { padding: 1.5mm 3mm; border-bottom: 1px solid var(--bord); }

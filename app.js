@@ -258,16 +258,27 @@ function majApercu() {
   $('p-client-details').innerHTML = facture.clientDetails
     .split('\n').filter((s) => s.trim()).map((s) => `<p>${echapper(s)}</p>`).join('');
 
+  // Ligne sans prix = gros titre de section ; les lignes suivantes en sont le détail (indentées)
+  let dansSection = false;
   $('p-lines').innerHTML = facture.lignes
     .filter((l) => l.designation || nb(l.pu))
-    .map((l) => `
-      <tr>
+    .map((l) => {
+      if (!nb(l.pu)) {
+        dansSection = true;
+        return `
+      <tr class="section">
+        <td class="desc" colspan="5">${echapper(l.designation)}${l.detail ? `<small>${echapper(l.detail)}</small>` : ''}</td>
+      </tr>`;
+      }
+      return `
+      <tr${dansSection ? ' class="detail"' : ''}>
         <td class="desc">${echapper(l.designation)}${l.detail ? `<small>${echapper(l.detail)}</small>` : ''}</td>
         <td>${pad2(nb(l.nombre))}</td>
         <td>${pad2(nb(l.qte))}</td>
         <td class="r">${fmtD(nb(l.pu), facture)}</td>
         <td class="r total">${fmtD(nb(l.nombre) * nb(l.qte) * nb(l.pu), facture)}</td>
-      </tr>`).join('');
+      </tr>`;
+    }).join('');
 
   const dv = devise(facture);
   $('p-devise').textContent = dv.libelle;
