@@ -14,3 +14,8 @@ Les données restent dans le navigateur utilisé : chaque ordinateur a son propr
 ## Enregistrement en ligne
 Les factures peuvent être enregistrées dans un tableur Google Sheets privé pour être retrouvées sur tous les appareils :
 voir [INSTALLATION-GOOGLE-SHEETS.md](INSTALLATION-GOOGLE-SHEETS.md).
+
+## Autres documents
+- **Bon de livraison** : type « Bon de livraison » dans la facturation (numérotation BL-0001/FNK/2026, sans prix, avec réception client).
+- **Demande d'agrément** : page `agrement.html`, lettre à remplir et imprimer avec cachet.
+- **Papier à en-tête Word** : `modeles/Papier-en-tete-FK-PRO.docx` (page vide avec en-tête et pied de page).

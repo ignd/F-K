@@ -29,6 +29,7 @@ const PARAMS_DEFAUT = {
   banque: '0115126000150',
   suffixe: 'FNK',
   prochain: 11,
+  prochainBL: 1,
   nbDefaut: '',
   cloudUrl: '',
   cloudCode: '',
@@ -38,7 +39,9 @@ const LIBELLES = {
   proforma: { titre: 'FACTURE PROFORMA', arrete: 'Arrêtée la présente facture proforma à la somme de :' },
   facture:  { titre: 'FACTURE',          arrete: 'Arrêtée la présente facture à la somme de :' },
   devis:    { titre: 'DEVIS',            arrete: 'Arrêté le présent devis à la somme de :' },
+  livraison: { titre: 'BON DE LIVRAISON', arrete: '' },
 };
+const estBL = (f) => f && f.type === 'livraison';
 
 let params = { ...PARAMS_DEFAUT, ...store.get(CLE_PARAMS, {}) };
 // Ajoute le second numéro sur les appareils qui ont encore l'ancien téléphone seul
@@ -50,8 +53,10 @@ function aujourdhui() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-function numeroSuivant() {
+// Les bons de livraison ont leur propre numérotation (BL-0001/FNK/2026)
+function numeroSuivant(type) {
   const annee = new Date().getFullYear();
+  if (type === 'livraison') return `BL-${String(params.prochainBL).padStart(4, '0')}/${params.suffixe}/${annee}`;
   return `${String(params.prochain).padStart(4, '0')}/${params.suffixe}/${annee}`;
 }
 
@@ -59,7 +64,7 @@ function nouvelleFacture() {
   return {
     id: null,
     type: 'proforma',
-    numero: numeroSuivant(),
+    numero: numeroSuivant('proforma'),
     date: aujourdhui(),
     lieu: 'Dakar',
     client: '',
@@ -190,7 +195,7 @@ const CHAMPS = {
 const CASES = { 'f-tva-on': 'tvaOn', 'f-cachet-on': 'cachetOn' };
 const CHAMPS_PARAMS = {
   's-nom': 'nom', 's-activite': 'activite', 's-adresse': 'adresse', 's-tel': 'tel', 's-email': 'email',
-  's-ninea': 'ninea', 's-rc': 'rc', 's-banque': 'banque', 's-suffixe': 'suffixe', 's-prochain': 'prochain', 's-nb': 'nbDefaut',
+  's-ninea': 'ninea', 's-rc': 'rc', 's-banque': 'banque', 's-suffixe': 'suffixe', 's-prochain': 'prochain', 's-prochain-bl': 'prochainBL', 's-nb': 'nbDefaut',
   's-cloud-url': 'cloudUrl', 's-cloud-code': 'cloudCode',
 };
 
@@ -245,6 +250,10 @@ function majApercu() {
   const lib = LIBELLES[facture.type] || LIBELLES.proforma;
   const t = calculer(facture);
 
+  const bl = estBL(facture);
+  // Bon de livraison : pas de prix ni de totaux, case de réception pour le client
+  $('sheet').classList.toggle('mode-bl', bl);
+  $('p-label-client').textContent = bl ? 'Livré à' : 'Facturé à';
   $('p-type').textContent = lib.titre;
   $('p-numero').textContent = facture.numero;
   $('p-date').textContent = dateFr(facture.date);
@@ -263,7 +272,8 @@ function majApercu() {
   $('p-lines').innerHTML = facture.lignes
     .filter((l) => l.designation || nb(l.pu))
     .map((l) => {
-      if (!nb(l.pu)) {
+      // Pas de lignes de section dans un bon de livraison (les lignes n'ont pas de prix)
+      if (!nb(l.pu) && !bl) {
         dansSection = true;
         return `
       <tr class="section">
@@ -275,8 +285,8 @@ function majApercu() {
         <td class="desc">${echapper(l.designation)}${l.detail ? `<small>${echapper(l.detail)}</small>` : ''}</td>
         <td>${pad2(nb(l.nombre))}</td>
         <td>${pad2(nb(l.qte))}</td>
-        <td class="r">${fmtD(nb(l.pu), facture)}</td>
-        <td class="r total">${fmtD(nb(l.nombre) * nb(l.qte) * nb(l.pu), facture)}</td>
+        <td class="r col-prix">${fmtD(nb(l.pu), facture)}</td>
+        <td class="r total col-prix">${fmtD(nb(l.nombre) * nb(l.qte) * nb(l.pu), facture)}</td>
       </tr>`;
     }).join('');
 
@@ -323,7 +333,7 @@ function dessinerHistorique() {
   if (!liste.length) { ul.innerHTML = '<li class="empty">Aucune facture enregistrée.</li>'; return; }
   ul.innerHTML = liste.map((f) => `
     <li>
-      <div class="info"><b>${echapper(f.numero)}</b> · ${fmtD(calculer(f).ttc, f)} ${devise(f).court}
+      <div class="info"><b>${echapper(f.numero)}</b>${estBL(f) ? '' : ` · ${fmtD(calculer(f).ttc, f)} ${devise(f).court}`}
         <span>${echapper(LIBELLES[f.type]?.titre || '')} — ${echapper(f.client || 'Sans client')} — ${dateFr(f.date)}</span></div>
       <button class="btn small" data-ouvrir="${f.id}">Ouvrir</button>
       <button class="btn small" data-dupliquer="${f.id}">Dupliquer</button>
@@ -359,18 +369,24 @@ function majStatut(texte, erreur) {
 
 // Le compteur suit le plus grand numéro déjà utilisé (factures saisies sur d'autres appareils)
 function ajusterCompteur() {
-  const motif = new RegExp(`^(\\d+)/${params.suffixe}/${new Date().getFullYear()}$`);
-  const max = factures().reduce((m, f) => {
-    const r = motif.exec(f.numero || '');
-    return r ? Math.max(m, Number(r[1])) : m;
-  }, 0);
-  if (max + 1 > nb(params.prochain)) {
-    const ancien = numeroSuivant();
-    params.prochain = max + 1;
+  const annee = new Date().getFullYear();
+  // [clé du compteur, motif du numéro, type qui l'utilise]
+  const compteurs = [
+    ['prochain', new RegExp(`^(\\d+)/${params.suffixe}/${annee}$`), 'proforma'],
+    ['prochainBL', new RegExp(`^BL-(\\d+)/${params.suffixe}/${annee}$`), 'livraison'],
+  ];
+  for (const [cle, motif, type] of compteurs) {
+    const max = factures().reduce((m, f) => {
+      const r = motif.exec(f.numero || '');
+      return r ? Math.max(m, Number(r[1])) : m;
+    }, 0);
+    if (max + 1 <= nb(params[cle])) continue;
+    const ancien = numeroSuivant(type);
+    params[cle] = max + 1;
     store.set(CLE_PARAMS, params);
     remplirParams();
     if (!facture.id && facture.numero === ancien) {
-      facture.numero = numeroSuivant();
+      facture.numero = numeroSuivant(type);
       $('f-numero').value = facture.numero;
       majApercu();
     }
@@ -417,8 +433,9 @@ async function enregistrer() {
   if (!facture.id) {
     facture.id = Date.now().toString(36);
     // Le compteur avance seulement si le numéro automatique a été utilisé
-    if (facture.numero === numeroSuivant()) {
-      params.prochain = nb(params.prochain) + 1;
+    const cle = estBL(facture) ? 'prochainBL' : 'prochain';
+    if (facture.numero === numeroSuivant(facture.type)) {
+      params[cle] = nb(params[cle]) + 1;
       store.set(CLE_PARAMS, params);
       remplirParams();
     }
@@ -522,14 +539,22 @@ function init() {
   dessinerHistorique();
 
   for (const [id, k] of Object.entries(CHAMPS)) {
-    $(id).addEventListener('input', (e) => { facture[k] = e.target.value; majApercu(); });
+    $(id).addEventListener('input', (e) => {
+      // Changer de type sur une nouvelle pièce : reprend le bon compteur (facture ou BL)
+      if (k === 'type' && !facture.id && facture.numero === numeroSuivant(facture.type)) {
+        facture.numero = numeroSuivant(e.target.value);
+        $('f-numero').value = facture.numero;
+      }
+      facture[k] = e.target.value;
+      majApercu();
+    });
   }
   for (const [id, k] of Object.entries(CASES)) {
     $(id).addEventListener('change', (e) => { facture[k] = e.target.checked; majApercu(); });
   }
   for (const [id, k] of Object.entries(CHAMPS_PARAMS)) {
     $(id).addEventListener('input', (e) => {
-      params[k] = k === 'prochain' ? Math.max(1, nb(e.target.value)) : e.target.value;
+      params[k] = k === 'prochain' || k === 'prochainBL' ? Math.max(1, nb(e.target.value)) : e.target.value;
       store.set(CLE_PARAMS, params);
       majApercu();
       if (k === 'cloudUrl' || k === 'cloudCode') majStatut();
@@ -566,7 +591,7 @@ function init() {
     if (b.dataset.ouvrir) charger(liste.find((f) => f.id === b.dataset.ouvrir));
     if (b.dataset.dupliquer) {
       const src = liste.find((f) => f.id === b.dataset.dupliquer);
-      charger({ ...src, id: null, numero: numeroSuivant(), date: aujourdhui() });
+      charger({ ...src, id: null, numero: numeroSuivant(src.type), date: aujourdhui() });
       toast('Copie créée : pensez à enregistrer.');
     }
     if (b.dataset.suppr) {

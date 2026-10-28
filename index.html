@@ -13,6 +13,8 @@
 <header class="toolbar no-print">
   <div class="brand"><img src="logo.png" alt=""> <span>Facturation F&amp;K PRO</span> <span id="cloud-statut" class="statut"></span></div>
   <div class="actions">
+    <a class="btn" href="agrement.html">Demande d'agrément</a>
+    <a class="btn" href="modeles/Papier-en-tete-FK-PRO.docx" download>Papier en-tête (Word)</a>
     <button id="btn-new" class="btn">Nouvelle</button>
     <button id="btn-save" class="btn">Enregistrer</button>
     <button id="btn-print" class="btn primary">Imprimer / PDF</button>
@@ -30,6 +32,7 @@
             <option value="proforma">Facture proforma</option>
             <option value="facture">Facture</option>
             <option value="devis">Devis</option>
+            <option value="livraison">Bon de livraison</option>
           </select>
         </label>
         <label>Devise
@@ -102,6 +105,7 @@
           <label>N° de compte bancaire <input id="s-banque"></label>
           <label>Suffixe de numérotation <input id="s-suffixe"></label>
           <label>Prochain numéro <input id="s-prochain" type="number" min="1"></label>
+          <label>Prochain n° de bon de livraison <input id="s-prochain-bl" type="number" min="1"></label>
         </div>
         <label>NB par défaut (repris sur chaque nouvelle facture)
           <textarea id="s-nb" rows="2"></textarea>
@@ -131,7 +135,7 @@
             <h1 id="p-type">FACTURE PROFORMA</h1>
             <p class="num">N° <span id="p-numero"></span></p>
             <p class="meta">Date : <span id="p-date"></span></p>
-            <p class="meta">Devise : <span id="p-devise">Francs CFA (XOF)</span></p>
+            <p class="meta col-prix">Devise : <span id="p-devise">Francs CFA (XOF)</span></p>
           </div>
         </div>
 
@@ -144,7 +148,7 @@
             <p id="p-contact"></p>
           </div>
           <div class="party client">
-            <p class="label">Facturé à</p>
+            <p class="label" id="p-label-client">Facturé à</p>
             <p class="name" id="p-client"></p>
             <div id="p-client-details"></div>
           </div>
@@ -156,8 +160,8 @@
               <th class="desc">Désignation</th>
               <th>Nombre</th>
               <th>Qté</th>
-              <th class="r">Prix unitaire</th>
-              <th class="r">Prix total</th>
+              <th class="r col-prix">Prix unitaire</th>
+              <th class="r col-prix">Prix total</th>
             </tr>
           </thead>
           <tbody id="p-lines"></tbody>
@@ -179,6 +183,14 @@
           <div class="nb" id="p-nb-bloc">
             <p><strong>NB :</strong></p>
             <div id="p-nb"></div>
+          </div>
+
+          <!-- Bon de livraison uniquement : réception par le client -->
+          <div class="reception">
+            <p class="who">Reçu par le client</p>
+            <p>Nom : ……………………………………</p>
+            <p>Date : ……………………………………</p>
+            <p>Signature et cachet :</p>
           </div>
 
           <div class="sign">

@@ -1,0 +1,23 @@
+/* Lettre sur papier à en-tête F&K PRO (demande d'agrément) */
+.lettre { font-size: 11.5pt; line-height: 1.45; padding: 12mm 18mm 9mm; }
+.lettre p { margin: 0 0 3.2mm; text-align: justify; }
+.entete { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px solid var(--bleu); padding-bottom: 4mm; margin-bottom: 9mm; }
+.entete .logo { width: 44mm; }
+.entete .coord { text-align: right; font-size: 9.5pt; color: var(--gris); line-height: 1.4; }
+.entete .coord p { margin: 0; text-align: right; }
+.entete .coord strong { color: var(--bleu); font-size: 12pt; }
+.lettre .l-date { text-align: right; }
+.l-dest { margin: 8mm 0 10mm auto; width: 95mm; font-weight: 700; }
+.l-dest p { margin: 0; text-align: left; }
+.l-objet strong { color: var(--bleu); }
+.l-domaines { margin: 1mm 0 4mm; padding-left: 7mm; }
+.l-domaines li { margin-bottom: 1.2mm; }
+.l-domaines li::marker { color: var(--orange); }
+.l-bas { display: flex; justify-content: flex-end; align-items: flex-start; gap: 8mm; margin-top: 7mm; }
+.l-pj { flex: 1; font-size: 10pt; padding: 3mm 5mm; border-left: 3px solid var(--orange); background: var(--fond-orange); border-radius: 2mm; }
+.l-pj strong { color: var(--orange); display: block; margin-bottom: 1mm; }
+.l-pj ul { margin: 0; padding-left: 5mm; columns: 2; column-gap: 8mm; }
+.l-pj li { margin: 0 0 .6mm; }
+.lettre .sign { width: 68mm; margin: 0; }
+.lettre .sign .who { text-align: center; margin: 0 0 2mm; }
+.lettre .sheet-foot p { text-align: center; margin: 0; }

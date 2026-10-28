@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>F&amp;K PRO — Demande d'agrément</title>
+<link rel="icon" href="logo.png">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="courrier.css">
+</head>
+<body>
+
+<!-- Barre d'outils (non imprimée) -->
+<header class="toolbar no-print">
+  <div class="brand"><img src="logo.png" alt=""> <span>Demande d'agrément</span></div>
+  <div class="actions">
+    <a class="btn" href="index.html">← Facturation</a>
+    <a class="btn" href="modeles/Papier-en-tete-FK-PRO.docx" download>Papier en-tête (Word)</a>
+    <button id="btn-reset" class="btn">Modèle par défaut</button>
+    <button id="btn-print" class="btn primary">Imprimer / PDF</button>
+  </div>
+</header>
+
+<main class="layout">
+  <!-- Formulaire (non imprimé) -->
+  <aside class="editor no-print">
+    <section class="card">
+      <h2>Destinataire</h2>
+      <div class="grid2">
+        <label>Lieu <input id="c-lieu"></label>
+        <label>Date <input id="c-date" type="date"></label>
+      </div>
+      <label>Destinataire (une ligne par information)
+        <textarea id="c-dest" rows="3"></textarea>
+      </label>
+      <label>Sigle de l'organisme (repris dans le texte) <input id="c-sigle"></label>
+      <label>Objet <input id="c-objet"></label>
+      <label>Formule d'appel <input id="c-appel"></label>
+    </section>
+
+    <section class="card">
+      <h2>Texte</h2>
+      <label>Introduction
+        <textarea id="c-intro" rows="4"></textarea>
+      </label>
+      <label>Domaines demandés (un par ligne)
+        <textarea id="c-domaines" rows="7"></textarea>
+      </label>
+      <label>Engagement (facultatif)
+        <textarea id="c-engagement" rows="3"></textarea>
+      </label>
+      <label>Formule de politesse
+        <textarea id="c-politesse" rows="3"></textarea>
+      </label>
+    </section>
+
+    <section class="card">
+      <h2>Pièces jointes et signature</h2>
+      <label>Pièces jointes (une par ligne, laisser vide pour masquer)
+        <textarea id="c-pj" rows="3" placeholder="Ex. : Registre du commerce"></textarea>
+      </label>
+      <div class="grid2">
+        <label>Signataire <input id="c-signataire"></label>
+        <label class="check"><input id="c-cachet-on" type="checkbox"> Afficher le cachet</label>
+      </div>
+      <p class="aide">Le cachet est celui chargé dans la facturation (Paramètres de l'entreprise).</p>
+    </section>
+  </aside>
+
+  <!-- Aperçu de la lettre (seule partie imprimée) -->
+  <section class="preview">
+    <article class="sheet lettre">
+      <div class="sheet-body">
+        <div class="entete">
+          <img class="logo" src="logo.png" alt="F&amp;K PRO">
+          <div class="coord" id="l-coord"></div>
+        </div>
+
+        <p class="l-date" id="l-date"></p>
+        <div class="l-dest" id="l-dest"></div>
+        <p class="l-objet"><strong>Objet :</strong> <span id="l-objet"></span></p>
+        <p id="l-appel"></p>
+        <p id="l-intro"></p>
+        <ul class="l-domaines" id="l-domaines"></ul>
+        <p id="l-engagement"></p>
+        <p id="l-pj-phrase"></p>
+        <p id="l-politesse"></p>
+
+        <div class="l-bas">
+          <div class="l-pj" id="l-pj-bloc">
+            <strong>Pièces jointes :</strong>
+            <ul id="l-pj"></ul>
+          </div>
+          <div class="sign">
+            <p class="who" id="l-signataire"></p>
+            <img id="l-cachet" alt="">
+          </div>
+        </div>
+      </div>
+
+      <footer class="sheet-foot">
+        <p id="l-foot1"></p>
+        <p id="l-foot2"></p>
+      </footer>
+    </article>
+  </section>
+</main>
+
+<script src="agrement.js"></script>
+</body>
+</html>

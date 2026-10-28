@@ -32,6 +32,7 @@ body {
 .btn {
   border: 1px solid var(--bord); background: #fff; color: var(--texte);
   padding: 8px 14px; border-radius: 8px; font: inherit; font-size: 14px; cursor: pointer;
+  display: inline-block; text-decoration: none; line-height: normal;
 }
 .btn:hover { border-color: var(--bleu); color: var(--bleu); }
 .btn.primary { background: var(--bleu); border-color: var(--bleu); color: #fff; }
@@ -128,6 +129,12 @@ label.check input { width: auto; margin: 0; }
 .bas { display: flex; gap: 6mm; align-items: flex-start; margin-top: 5mm; }
 .nb { flex: 1; padding: 3mm 5mm; border: 1px dashed var(--bleu); border-radius: 2mm; font-size: 9.5pt; }
 .nb strong { color: var(--orange); font-weight: 700; }
+/* Bon de livraison : sans prix ni totaux, avec réception client */
+.reception { display: none; flex: none; width: 62mm; padding: 3mm 4mm; border: 1px solid var(--bord); border-radius: 2mm; font-size: 10pt; line-height: 1.9; min-height: 38mm; }
+.reception .who { font-weight: 700; line-height: 1.4; margin-bottom: 1mm; }
+.mode-bl .col-prix, .mode-bl .totals, .mode-bl .words { display: none; }
+.mode-bl .reception { display: block; }
+.mode-bl .bas { margin-top: 8mm; }
 .sign { flex: none; margin-left: auto; width: 62mm; text-align: center; }
 .sign .who { font-weight: 700; margin-top: 2mm; }
 .sign img { display: none; max-width: 60mm; max-height: 30mm; margin: 3mm auto 0; }
